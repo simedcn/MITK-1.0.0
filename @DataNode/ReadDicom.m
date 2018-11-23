@@ -57,7 +57,7 @@ end
 
 % 读取其他必要的 dicom 信息
 a.Name = dcmpath; % 以路径作为数据节点名称
-a.DataType = '原始'; % 后续这里应该作为一个输入参数
+% a.DataType = '原始'; % 后续这里应该作为一个输入参数
 a.Max = max(V(:));
 a.Min = min(V(:));
 if isfield(info, {'WindowCenter', 'WindowWidth'})
@@ -86,18 +86,22 @@ if nFiles == 1
 	z = info.ImageOrientationPatient;
 	a.Matrix = [z(1), z(2), z(3); z(4), z(5), z(6);...
 		cross([z(1), z(2), z(3)], [z(4), z(5), z(6)])];
-	a.Origin = info.ImagePositionPatient';
-	a.Spacing = [info.PixelSpacing(1), info.PixelSpacing(2), info.SliceThickness];
+	a.Spacing = [info.PixelSpacing(2), info.PixelSpacing(1), info.SliceThickness];
+	a.Origin = (abs(a.Matrix) * info.ImagePositionPatient)';
+	% 由于 Matlab 矩阵行表示 y 坐标，列表示 x 坐标
+	a.Origin = [a.Origin(2), a.Origin(1), a.Origin(3)];
 else
 	a.Size = ss([1,2,4]);
 	a.Channel = ss(3);
 	V = permute(V, [1,2,4,3]); % 将张数放在第3个维度上，将通道数放在第4个维度上
 	normdir = cross(S.PatientOrientations(1,:,1), S.PatientOrientations(2,:,1));
 	a.Matrix = [S.PatientOrientations(:,:,1); normdir];
-	a.Origin = S.PatientPositions(1,:);
 	[~, idx] = max(abs(normdir));
 	SliceThickness = abs(S.PatientPositions(1,idx) - S.PatientPositions(2,idx));
-	a.Spacing = [info.PixelSpacing(1), info.PixelSpacing(2), SliceThickness];
+	a.Spacing = [info.PixelSpacing(2), info.PixelSpacing(1), SliceThickness];
+	a.Origin = (abs(a.Matrix) * S.PatientPositions(1,:)')';
+	% 由于 Matlab 矩阵行表示 y 坐标，列表示 x 坐标
+	a.Origin = [a.Origin(2), a.Origin(1), a.Origin(3)];
 end
 
 % 校正数据方向
@@ -107,27 +111,31 @@ R = [0,1,0; 1,0,0; 0,0,1]; % 交换矩阵，交换第一个坐标与第二坐标
 T = R / M * R; % 由于Matlab矩阵表示时为 ysize * xsize, 所以还需将第一个坐标与第二坐标交换
 aa = (T * aa')';
 if ~isequal(abs(aa), [1,2,3]) % 若 abs(aa) = [1,2,3], 说明方向矩阵为的abs单位矩阵，无须重排方向
-	a.Size = abs((T * a.Size')');
-	a.Spacing = abs((T * a.Spacing')');
 	a.Matrix = [1,0,0; 0,1,0; 0,0,1];
+	a.Size = (abs(T) * a.Size')';
+	a.Spacing = (abs(T) * a.Spacing')';
+	a.Origin = (abs(T) * a.Origin')';
 	V = permute(V, [abs(aa), 4]);
 end
-idx = round((1 + a.Size) / 2);
-a.X = idx(1);
-a.Y = idx(2);
-a.Z = idx(3);
 
 % 如果有负的，则做个逆向重排
 if aa(1) < 0
 	V(1:end,:,:,:) = V(end:-1:1,:,:,:);
+	a.Origin(1) = a.Origin(1) - (a.Size(1) - 1) * a.Spacing(1);
 end
 if aa(2) < 0
 	V(:,1:end,:,:) = V(:,end:-1:1,:,:);
+	a.Origin(2) = a.Origin(2) - (a.Size(2) - 1) * a.Spacing(2);
 end
 if aa(3) < 0 % 此处为便于显示而设为 > 0 才逆向重排，由于matlab差异造成
 	V(:,:,1:end,:) = V(:,:,end:-1:1,:);
+	a.Origin(3) = a.Origin(3) - (a.Size(3) - 1) * a.Spacing(3);
 end
-
+a.EndPoint = a.Origin + (a.Size - 1) .* a.Spacing;
+idx = (round((1 + a.Size) / 2) - 1) .* a.Spacing + a.Origin;
+a.X = idx(1);
+a.Y = idx(2);
+a.Z = idx(3);
 a.Data = V;
 
 end

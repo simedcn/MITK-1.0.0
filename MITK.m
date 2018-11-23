@@ -24,7 +24,7 @@ function varargout = MITK(varargin)
 
 % Edit the above text to modify the response to help MITK
 
-% Last Modified by GUIDE v2.5 01-Nov-2018 17:56:13
+% Last Modified by GUIDE v2.5 20-Nov-2018 16:44:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,6 +63,12 @@ app.TableDM.Data = {};
 app.DM = DataManager;
 app.DM.CreateListeners;
 
+% 创建 Tab 页面
+% app.TabGP = uitabgroup(app.PanLevelSet);
+% app.TabReg = uitab(app.TabGP, 'Title', '配准', 'Tag', 'TabReg');
+% app.TabSeg = uitab(app.TabGP, 'Title', '分割', 'Tag', 'TabSeg');
+% app = TabReg_CreateFcn(app.TabReg, [], app);
+
 % Update handles structure
 guidata(hObject, app);
 
@@ -85,6 +91,13 @@ end
 
 % “Test”按钮响应函数，仅作测试用
 function Test_Callback(hObject, eventdata, app)
+
+hObject.Enable = 'off'; drawnow;
+filepath = 'E:\DCMDATA\20180329-陆保华（MR）\data\4（1.5mm）';
+filename = 'E:\DCMDATA\20180329-陆保华（MR）\data\4（1.5mm）\36696778';
+app.DM.LoadData(filepath, filename, '原始');
+return
+
 
 hObject.Enable = 'off'; drawnow;
 filepath = 'E:\DCMDATA\CVH\416x469_Gray';
@@ -173,7 +186,7 @@ if filepath == 0
 	return;
 end
 
-app.DM.LoadData(filepath, filename);
+app.DM.LoadData(filepath, filename, '原始');
 
 end
 
@@ -282,7 +295,7 @@ end
 
 % 鼠标按键点下
 function MITK_WindowButtonDownFcn(hObject, eventdata, app)
-tic
+
 if isempty(app.DM.cdata)
 	return;
 end
@@ -299,7 +312,7 @@ elseif strcmp(clicktype, 'alt') % 2种情况：(1)Ctrl+左键，(2)右键
 elseif strcmp(clicktype, 'open') % 双击任意键
 % 	fprintf('双击\n')
 end
-toc
+
 end
 
 
@@ -352,4 +365,135 @@ if app.DM.UI.LeftButtonDown % 如果左键是处于按下的状态
 	ChangeIndexByMove(app.DM);
 end
 
+end
+
+
+function RegTest_Callback(hObject, eventdata, app)
+
+fprintf('配准测试已禁用\n');
+hObject.Enable = 'off'; drawnow;
+return
+
+filepath = '.\TESTDATA\mr';
+filename = '.\TESTDATA\mr\IM32';
+app.DM.LoadData(filepath, filename);
+drawnow;
+filepath = '.\TESTDATA\ct';
+filename = '.\TESTDATA\ct\02568091';
+app.DM.LoadData(filepath, filename);
+drawnow;
+% 
+ct = double(app.DM.DN(2).Data);
+mr = double(app.DM.DN(1).Data);
+ct = imgaussfilt(ct);
+mr = imgaussfilt(mr);
+test = RegTest(mr, ct);
+test.Update;
+save('test.mat', 'test');
+
+end
+
+
+
+
+function PopMenuAlgNav1_Callback(hObject, eventdata, handles)
+
+end
+
+
+function PopMenuAlgNav1_CreateFcn(hObject, eventdata, handles)
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function PopMenuAlgNav2_Callback(hObject, eventdata, handles)
+
+end
+
+
+function PopMenuAlgNav2_CreateFcn(hObject, eventdata, handles)
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function PanLevelSet_PopMenuSegData_Callback(hObject, eventdata, handles)
+
+end
+
+
+function PanLevelSet_PopMenuSegData_CreateFcn(hObject, eventdata, handles)
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function PanLevelSet_EditSegName_Callback(hObject, eventdata, handles)
+
+end
+
+
+function PanLevelSet_EditSegName_CreateFcn(hObject, eventdata, handles)
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function PanLevelSet_PopMenuSegColor_Callback(hObject, eventdata, handles)
+
+end
+
+
+function PanLevelSet_PopMenuSegColor_CreateFcn(hObject, eventdata, handles)
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function PanLevelSet_ButtonSegColor_Callback(hObject, eventdata, handles)
+
+c = uisetcolor(hObject);
+hObject.BackgroundColor = c;
+g = sum([0.299, 0.587, 0.114] .* c);
+if g < 0.3
+	hObject.ForegroundColor = [1,1,1];
+else
+	hObject.ForegroundColor = [0,0,0];
+end
+end
+
+
+function PanLevelSet_PopMenuSegDim_Callback(hObject, eventdata, handles)
+
+end
+
+
+function PanLevelSet_PopMenuSegDim_CreateFcn(hObject, eventdata, handles)
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 end

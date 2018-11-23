@@ -16,6 +16,7 @@ classdef DataNode < handle
 		Matrix % 方向矩阵，3*3
 		Spacing % 像素点间的物理间距，1*3
 		Origin % 物理原点坐标，1*3
+		EndPoint % 与物理原点相对的对角点物理坐标，1*3
 		
 		% 控制在 4 个窗口上的显示对象，不同 DataType 的数据可能只在某几个窗口上有显示
 		Fig(4,1) cell
@@ -36,7 +37,7 @@ classdef DataNode < handle
 		Alpha % 不透明度，0 到 1，0 表示完全透明即不可见，1 表示完全不透明
 		Color % 显示时所用的颜色，1*3颜色矩阵
 		DisplayRange % 显示范围，[low, high], 1*2
-		% 当前光标指示的坐标点 [X, X, Z]
+		% 当前光标指示的坐标点的物理坐标 [X, X, Z]
 		X
 		Y
 		Z
@@ -44,6 +45,7 @@ classdef DataNode < handle
 	
 	
 	methods (Access = public)
+		
 		
 		function a = DataNode
 			% 默认构造函数
@@ -72,6 +74,7 @@ classdef DataNode < handle
 	
 	
 	methods (Access = private)
+		
 		
 		function VisibleChangeFcn(a, ~, ~)
 			% 改变可见性 Visible 的响应函数
@@ -154,16 +157,19 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			a = dn.Spacing(1);
-			b = dn.Spacing(2);
-			c = dn.Spacing(3);
-			ax = dn.Fig{3}.Parent;
-			[ax.XLim, ax.YLim] = GetAxisLim(dn, 3);
-			cdata = squeeze(dn.Data(dn.X,:,:,:));
+			if dn.X < dn.Origin(1) || dn.X > dn.EndPoint(1)
+				delete(dn.Fig{3});
+				return;
+			end
+			x = round((dn.X - dn.Origin(1)) / dn.Spacing(1)) + 1;
+			ax = findobj('Tag', 'Axes3');
+% 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
+			cdata = squeeze(dn.Data(x,:,:,:));
 			delete(dn.Fig{3});
 			dn.Fig{3} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+			dn.Fig{3}.XData = [dn.Origin(3), dn.EndPoint(3)];
+			dn.Fig{3}.YData = [dn.Origin(2), dn.EndPoint(2)];
 			ax.Visible = 'on';
-			ax.DataAspectRatio = [a, c, b];
 		end
 		
 		
@@ -171,16 +177,19 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			a = dn.Spacing(1);
-			b = dn.Spacing(2);
-			c = dn.Spacing(3);
-			ax = dn.Fig{2}.Parent;
-			[ax.XLim, ax.YLim] = GetAxisLim(dn, 2);
-			cdata = squeeze(dn.Data(:,dn.Y,:,:));
+			if dn.Y < dn.Origin(2) || dn.Y > dn.EndPoint(2)
+				delete(dn.Fig{2});
+				return;
+			end
+			y = round((dn.Y - dn.Origin(2)) / dn.Spacing(2)) + 1;
+			ax = findobj('Tag', 'Axes2');
+% 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
+			cdata = squeeze(dn.Data(:,y,:,:));
 			delete(dn.Fig{2});
 			dn.Fig{2} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+			dn.Fig{2}.XData = [dn.Origin(3), dn.EndPoint(3)];
+			dn.Fig{2}.YData = [dn.Origin(1), dn.EndPoint(1)];
 			ax.Visible = 'on';
-			ax.DataAspectRatio = [b, c, a];
 		end
 		
 		
@@ -188,16 +197,19 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			a = dn.Spacing(1);
-			b = dn.Spacing(2);
-			c = dn.Spacing(3);
-			ax = dn.Fig{1}.Parent;
-			[ax.XLim, ax.YLim] = GetAxisLim(dn, 1);
-			cdata = squeeze(dn.Data(:,:,dn.Z,:));
+			if dn.Z < dn.Origin(3) || dn.Z > dn.EndPoint(3)
+				delete(dn.Fig{1});
+				return;
+			end
+			z = round((dn.Z - dn.Origin(3)) / dn.Spacing(3)) + 1;
+			ax = findobj('Tag', 'Axes1');
+% 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
+			cdata = squeeze(dn.Data(:,:,z,:));
 			delete(dn.Fig{1});
 			dn.Fig{1} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+			dn.Fig{1}.XData = [dn.Origin(2), dn.EndPoint(2)];
+			dn.Fig{1}.YData = [dn.Origin(1), dn.EndPoint(1)];
 			ax.Visible = 'on';
-			ax.DataAspectRatio = [b, a, c];
 		end
 		
 		
