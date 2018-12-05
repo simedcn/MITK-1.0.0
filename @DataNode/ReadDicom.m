@@ -38,6 +38,7 @@ else
 		return;
 	end
 end
+V = int16(V); % uint 会使有些数据中负值变为 0
 info = GetDicomInfo(filenames{1});
 if isempty(info)
 	tit = '导入数据失败';
@@ -132,7 +133,7 @@ if aa(3) < 0 % 此处为便于显示而设为 > 0 才逆向重排，由于matlab差异造成
 	a.Origin(3) = a.Origin(3) - (a.Size(3) - 1) * a.Spacing(3);
 end
 a.EndPoint = a.Origin + (a.Size - 1) .* a.Spacing;
-idx = (round((1 + a.Size) / 2) - 1) .* a.Spacing + a.Origin;
+idx = round((1 + a.Size) / 2);
 a.X = idx(1);
 a.Y = idx(2);
 a.Z = idx(3);

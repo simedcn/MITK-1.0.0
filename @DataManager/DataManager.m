@@ -12,7 +12,7 @@ classdef DataManager < handle
 		EL_LoadDataSuccess event.listener
 	end
 	
-	properties (SetObservable)
+	properties (SetObservable, AbortSet)
 		% 界面数据
 		Index % 界面当前光标指示的坐标点的物理坐标 [x, y, z]
 		cdata % 当前所操作的数据节点，通常是当前牌显示顶层的数据，仅用于引用，
@@ -38,7 +38,8 @@ classdef DataManager < handle
 		function LoadData(a, filepath, filename, datatype)
 			[~, ~, ext] = fileparts(filename);
 			dn = DataNode;
-			% 如果文件拓展名为 dcm 或者没有扩展名，均视作 dicom 文件打开，并自动在该路径下查找 dicom 序列文件
+			% 如果文件拓展名为 dcm 或者没有扩展名，均视作 dicom 文件打开，
+			% 并自动在该路径下查找 dicom 序列文件
 			if isempty(ext) || strcmpi(ext, '.dcm')
 				dn.ReadDicom(filepath);
 			elseif strcmpi(ext, '.nii')
@@ -59,7 +60,8 @@ classdef DataManager < handle
 				a.DN(n) = dn;
 				a.cdata = dn; % 默认将当前新打开的数据作为显示顶层的数据
 				notify(a, 'LoadDataSuccess');
-				a.Index = [dn.X, dn.Y, dn.Z];
+				a.Index = ([dn.X, dn.Y, dn.Z] - 1) .* dn.Spacing + ...
+					dn.Origin;
 			end
 		end
 		
@@ -73,7 +75,7 @@ classdef DataManager < handle
 	methods(Static)
 		ShowNewData(src, event, dn) % 显示数据节点
 	end
-	
+	 
 	
 	
 	methods(Access = private)
@@ -83,9 +85,10 @@ classdef DataManager < handle
 			Z = a.Index(3);
 			
 			for i = 1:length(a.DN)
-				a.DN(i).X = X;
-				a.DN(i).Y = Y;
-				a.DN(i).Z = Z;
+				idx = xyz2ijk(a.Index, a.DN(i));
+				a.DN(i).X = idx(1);
+				a.DN(i).Y = idx(2);
+				a.DN(i).Z = idx(3);
 			end
 			
 			ax = findobj('Tag', 'Axes1');
@@ -111,7 +114,7 @@ classdef DataManager < handle
 			a.Line{3} = line(ax, xdata, ydata, 'LineWidth', 0.2);
 			a.Line{3}(1).Color = 'r';
 			a.Line{3}(2).Color = 'g';
-			
+
 			idx = [];
 			for i = length(a.DN):-1:1
 				if strcmp(a.DN(i).DataType, '原始') && a.DN(i).Visible

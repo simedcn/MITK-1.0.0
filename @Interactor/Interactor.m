@@ -10,7 +10,8 @@ classdef Interactor < handle
 		MiddleButtonDown logical
 		RightClick logical
 		CtrlPressDown logical
-		
+		PaintbrushOn logical
+		cc
 	end
 	
 	methods
@@ -20,6 +21,7 @@ classdef Interactor < handle
 			a.MiddleButtonDown = 0;
 			a.RightClick = 0;
 			a.CtrlPressDown = 0;
+			a.PaintbrushOn = 0;
 		end
 	end
 

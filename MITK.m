@@ -1,5 +1,6 @@
 %#ok<*DEFNU>
-
+%#ok<*INUSL>
+%#ok<*INUSD>
 function varargout = MITK(varargin)
 % MITK MATLAB code for MITK.fig
 %      MITK, by itself, creates a new MITK or raises the existing
@@ -24,7 +25,7 @@ function varargout = MITK(varargin)
 
 % Edit the above text to modify the response to help MITK
 
-% Last Modified by GUIDE v2.5 20-Nov-2018 16:44:16
+% Last Modified by GUIDE v2.5 30-Nov-2018 10:36:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,6 +64,9 @@ app.TableDM.Data = {};
 app.DM = DataManager;
 app.DM.CreateListeners;
 
+% 添加一些路径
+addpath('./C++ code');
+
 % 创建 Tab 页面
 % app.TabGP = uitabgroup(app.PanLevelSet);
 % app.TabReg = uitab(app.TabGP, 'Title', '配准', 'Tag', 'TabReg');
@@ -93,8 +97,8 @@ end
 function Test_Callback(hObject, eventdata, app)
 
 hObject.Enable = 'off'; drawnow;
-filepath = 'E:\DCMDATA\20180329-陆保华（MR）\data\4（1.5mm）';
-filename = 'E:\DCMDATA\20180329-陆保华（MR）\data\4（1.5mm）\36696778';
+filepath = 'E:\DCMDATA\20171117-SH0021-0007-ZSM\MR\data\PV1';
+filename = 'E:\DCMDATA\20171117-SH0021-0007-ZSM\MR\data\PV1\IM0';
 app.DM.LoadData(filepath, filename, '原始');
 return
 
@@ -365,6 +369,71 @@ if app.DM.UI.LeftButtonDown % 如果左键是处于按下的状态
 	ChangeIndexByMove(app.DM);
 end
 
+if app.DM.UI.PaintbrushOn
+	ax = gca;
+	CurrentPoint = get(ax, 'CurrentPoint');
+	x = CurrentPoint(1,2);
+	y = CurrentPoint(1,1);
+	if x < ax.YLim(1) || x > ax.YLim(2) || y < ax.XLim(1) || y > ax.XLim(2)
+		delete(app.DM.UI.cc);
+		return; % 点到坐标轴外无效
+	end
+	dn = app.DM.cdata;
+	if strcmp(ax.Tag, 'Axes1')
+		p = xyz2ijk([x, y, dn.Z], dn);
+		if isempty(p)
+			delete(app.DM.UI.cc);
+			return;
+		end
+		i = p(1); j = p(2); k = p(3);
+		I = double(dn.Data(:,:,k));
+		M = zeros(dn.Size(1), dn.Size(2));
+		seed = [i,j];
+		seedtype = 1;
+		neibtype = 4;
+		threlow = 40;
+		threhigh = 30;
+		radius = 20;
+		DeformableBrush(I, M, seed, seedtype, neibtype, threlow, threhigh, radius);
+		se = strel('disk', 2);
+		M = imclose(logical(M), se);
+		% DeformableBrush(I, M, seed, seedtype, neibtype, threlow, threhigh, radius)
+		% I : 输入图像
+		% M : 输出图像
+		% seed : 种子点坐标，1*2
+		% seedtype : 种子点类型。0, 1, 2, 3,...
+		% neibtype : 邻域类型。4, 8; 6, 18, 26
+		% threlow : 低阈值
+		% threhigh : 高阈值
+		% radius : 画刷半径
+		
+% 		v = I(i,j);
+% 		M(i,j) = 1;
+% 		
+% 		for ii = -r:r
+% 			for jj = -r:r
+% 				if ii^2 + jj^2 <= r^2
+% 					xx = i + ii;
+% 					yy = j + jj;
+% 					if xx >= 1 && xx <= dn.Size(1) && ...
+% 							yy >= 1 && yy <= dn.Size(2)
+% 						if abs(I(xx,yy) - v) < Thre
+% 							M(xx,yy) = 1;
+% 						end
+% 					end
+% 				end
+% 			end
+% 		end
+		delete(app.DM.UI.cc);
+		[~, app.DM.UI.cc] = contour(ax, double(M), [0.5,0.5], 'r');
+		app.DM.UI.cc.XData = (app.DM.UI.cc.XData - 1) * dn.Spacing(2) + ...
+			dn.Origin(2);
+		app.DM.UI.cc.YData = (app.DM.UI.cc.YData - 1) * dn.Spacing(1) + ...
+			dn.Origin(1);
+		drawnow;
+	end
+end
+
 end
 
 
@@ -496,4 +565,21 @@ function PanLevelSet_PopMenuSegDim_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+end
+
+
+function Paintbrush_Callback(hObject, eventdata, app)
+
+% if isempty(app.DM.cdata)
+% 	return;
+% end
+
+if app.DM.UI.PaintbrushOn
+	app.DM.UI.PaintbrushOn = 0;
+	hObject.BackgroundColor = [0.94, 0.94, 0.94];
+else
+	app.DM.UI.PaintbrushOn = 1;
+	hObject.BackgroundColor = [0.4, 0.8, 1];
+end
+
 end

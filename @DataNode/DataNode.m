@@ -26,18 +26,21 @@ classdef DataNode < handle
 		EL_Alpha
 		EL_Color
 		EL_DisplayRange
+% 		EL_Index
 		EL_X
 		EL_Y
 		EL_Z
 	end
 	
 	
-	properties (SetObservable)
+	properties (SetObservable, AbortSet)
 		Visible logical % 可见性
 		Alpha % 不透明度，0 到 1，0 表示完全透明即不可见，1 表示完全不透明
 		Color % 显示时所用的颜色，1*3颜色矩阵
 		DisplayRange % 显示范围，[low, high], 1*2
-		% 当前光标指示的坐标点的物理坐标 [X, X, Z]
+		
+% 		Index % 当前光标指示的坐标点的物理坐标
+		% 当前光标指示点对应该数据节点的索引坐标
 		X
 		Y
 		Z
@@ -62,6 +65,7 @@ classdef DataNode < handle
 			a.EL_Alpha = addlistener(a, 'Alpha', 'PostSet', @a.AlphaChangeFcn);
 			a.EL_Color = addlistener(a, 'Color', 'PostSet', @a.ColorChangeFcn);
 			a.EL_DisplayRange = addlistener(a, 'DisplayRange', 'PostSet', @a.DisplayRangeChangeFcn);
+% 			a.EL_Index = addlistener(a, 'Index', 'PostSet', @a.IndexChangeFcn);
 			a.EL_X = addlistener(a, 'X', 'PostSet', @a.XChangeFcn);
 			a.EL_Y = addlistener(a, 'Y', 'PostSet', @a.YChangeFcn);
 			a.EL_Z = addlistener(a, 'Z', 'PostSet', @a.ZChangeFcn);
@@ -153,18 +157,23 @@ classdef DataNode < handle
 		end
 		
 		
+		function IndexChangeFcn(dn, ~, ~)
+			
+		end
+		
+		
 		function XChangeFcn(dn, ~, ~)
 			if ~dn.Visible
 				return;
 			end
-			if dn.X < dn.Origin(1) || dn.X > dn.EndPoint(1)
+			if dn.X < 1 || dn.X > dn.Size(1)
 				delete(dn.Fig{3});
 				return;
 			end
-			x = round((dn.X - dn.Origin(1)) / dn.Spacing(1)) + 1;
+% 			x = round((dn.X - dn.Origin(1)) / dn.Spacing(1)) + 1;
 			ax = findobj('Tag', 'Axes3');
 % 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
-			cdata = squeeze(dn.Data(x,:,:,:));
+			cdata = squeeze(dn.Data(dn.X,:,:,:));
 			delete(dn.Fig{3});
 			dn.Fig{3} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
 			dn.Fig{3}.XData = [dn.Origin(3), dn.EndPoint(3)];
@@ -177,14 +186,14 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			if dn.Y < dn.Origin(2) || dn.Y > dn.EndPoint(2)
+			if dn.Y < 1 || dn.Y > dn.Size(2)
 				delete(dn.Fig{2});
 				return;
 			end
-			y = round((dn.Y - dn.Origin(2)) / dn.Spacing(2)) + 1;
+% 			y = round((dn.Y - dn.Origin(2)) / dn.Spacing(2)) + 1;
 			ax = findobj('Tag', 'Axes2');
 % 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
-			cdata = squeeze(dn.Data(:,y,:,:));
+			cdata = squeeze(dn.Data(:,dn.Y,:,:));
 			delete(dn.Fig{2});
 			dn.Fig{2} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
 			dn.Fig{2}.XData = [dn.Origin(3), dn.EndPoint(3)];
@@ -197,14 +206,14 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			if dn.Z < dn.Origin(3) || dn.Z > dn.EndPoint(3)
+			if dn.Z < 1 || dn.Z > dn.Size(3)
 				delete(dn.Fig{1});
 				return;
 			end
 			z = round((dn.Z - dn.Origin(3)) / dn.Spacing(3)) + 1;
 			ax = findobj('Tag', 'Axes1');
 % 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
-			cdata = squeeze(dn.Data(:,:,z,:));
+			cdata = squeeze(dn.Data(:,:,dn.Z,:));
 			delete(dn.Fig{1});
 			dn.Fig{1} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
 			dn.Fig{1}.XData = [dn.Origin(2), dn.EndPoint(2)];
