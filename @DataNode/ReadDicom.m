@@ -38,22 +38,13 @@ else
 		return;
 	end
 end
-V = int16(V); % uint 会使有些数据中负值变为 0
+
 info = GetDicomInfo(filenames{1});
 if isempty(info)
 	tit = '导入数据失败';
 	msg = '读取 dicom 文件头信息失败。';
 	errordlg(msg, tit, 'modal');
 	return;
-end
-
-% 转换为标准的CT值
-if isfield(info, {'RescaleSlope', 'RescaleIntercept'})
-	k = info.RescaleSlope;
-	b = info.RescaleIntercept;
-	if k ~= 1 || b ~= 0
-		V = k * V + b;
-	end
 end
 
 % 读取其他必要的 dicom 信息
@@ -133,10 +124,26 @@ if aa(3) < 0 % 此处为便于显示而设为 > 0 才逆向重排，由于matlab差异造成
 	a.Origin(3) = a.Origin(3) - (a.Size(3) - 1) * a.Spacing(3);
 end
 a.EndPoint = a.Origin + (a.Size - 1) .* a.Spacing;
-idx = round((1 + a.Size) / 2);
-a.X = idx(1);
-a.Y = idx(2);
-a.Z = idx(3);
+% idx = round((1 + a.Size) / 2);
+% a.X = idx(1);
+% a.Y = idx(2);
+% a.Z = idx(3);
+
+if a.Channel == 3
+	if a.Max > 1 && a.Max <= 255
+		V = uint8(V); % 3 通道，最大值不超过 255 的图像，认为是 RGB 图像
+	end
+end
+
+% 如果是 CT 图像，则转换为标准的 CT 值
+if isfield(info, {'RescaleSlope', 'RescaleIntercept'})
+	k = info.RescaleSlope;
+	b = info.RescaleIntercept;
+	if k ~= 1 || b ~= 0
+		V = int16(V); % uint 会使有些数据中负值变为 0
+		V = k * V + b;
+	end
+end
 a.Data = V;
 
 end

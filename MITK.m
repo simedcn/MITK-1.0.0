@@ -287,19 +287,19 @@ end
 
 % 鼠标滚轮
 function MITK_WindowScrollWheelFcn(hObject, eventdata, app)
-
+tic
 if isempty(app.DM.cdata)
 	return;
 end
 
 ChangeIndexByWheel(app.DM, eventdata.VerticalScrollCount);
-
+toc
 end
 
 
 % 鼠标按键点下
 function MITK_WindowButtonDownFcn(hObject, eventdata, app)
-
+tic
 if isempty(app.DM.cdata)
 	return;
 end
@@ -316,7 +316,7 @@ elseif strcmp(clicktype, 'alt') % 2种情况：(1)Ctrl+左键，(2)右键
 elseif strcmp(clicktype, 'open') % 双击任意键
 % 	fprintf('双击\n')
 end
-
+toc
 end
 
 
@@ -339,7 +339,7 @@ end
 
 % 鼠标移动
 function MITK_WindowButtonMotionFcn(hObject, eventdata, app)
-
+tic
 if isempty(app.DM.cdata)
 	return;
 end
@@ -433,7 +433,7 @@ if app.DM.UI.PaintbrushOn
 		drawnow;
 	end
 end
-
+toc
 end
 
 

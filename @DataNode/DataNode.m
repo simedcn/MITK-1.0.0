@@ -82,18 +82,23 @@ classdef DataNode < handle
 		
 		function VisibleChangeFcn(a, ~, ~)
 			% 改变可见性 Visible 的响应函数
-			
-			if a.Visible % 由隐藏调成显示时，需要重新刷新图像
-				a.X = a.X;
-				a.Y = a.Y;
-				a.Z = a.Z;
-			else
-				for i = 1:3
-					if ~isempty(a.Fig{i}) && isvalid(a.Fig{i})
-						set(a.Fig{i}, 'Visible', a.Visible);
-					end
+			for i = 1:3
+				if ~isempty(a.Fig{i}) && isvalid(a.Fig{i})
+					set(a.Fig{i}, 'Visible', a.Visible);
 				end
 			end
+			
+% 			if a.Visible % 由隐藏调成显示时，需要重新刷新图像
+% 				a.X = a.X;
+% 				a.Y = a.Y;
+% 				a.Z = a.Z;
+% 			else
+% 				for i = 1:3
+% 					if ~isempty(a.Fig{i}) && isvalid(a.Fig{i})
+% 						set(a.Fig{i}, 'Visible', a.Visible);
+% 					end
+% 				end
+% 			end
 		end
 		
 		
@@ -157,28 +162,30 @@ classdef DataNode < handle
 		end
 		
 		
-		function IndexChangeFcn(dn, ~, ~)
-			
-		end
-		
-		
 		function XChangeFcn(dn, ~, ~)
 			if ~dn.Visible
 				return;
 			end
-			if dn.X < 1 || dn.X > dn.Size(1)
-				delete(dn.Fig{3});
-				return;
+			if dn.X < 1 || dn.X > dn.Size(1) % 索引在图像外
+				if ~isempty(dn.Fig{3}) % 非第一次显示，只需更改其 CData 即可
+					dn.Fig{3}.CData = [];
+				end
+			else % 索引在图像内
+				if isempty(dn.Fig{3}) % 第一次显示
+					ax = findobj('Tag', 'Axes3');
+					cdata = squeeze(dn.Data(dn.X,:,:,:));
+					dn.Fig{3} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+					dn.Fig{3}.XData = [dn.Origin(3), dn.EndPoint(3)];
+					dn.Fig{3}.YData = [dn.Origin(2), dn.EndPoint(2)];
+					ax.Visible = 'on';
+					h = findobj('Tag', 'CrossLine3');
+					if ~isempty(h)
+						uistack(h, 'top');
+					end
+				else % 非第一次显示，只需更改其 CData 即可
+					dn.Fig{3}.CData = squeeze(dn.Data(dn.X,:,:,:));
+				end
 			end
-% 			x = round((dn.X - dn.Origin(1)) / dn.Spacing(1)) + 1;
-			ax = findobj('Tag', 'Axes3');
-% 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
-			cdata = squeeze(dn.Data(dn.X,:,:,:));
-			delete(dn.Fig{3});
-			dn.Fig{3} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
-			dn.Fig{3}.XData = [dn.Origin(3), dn.EndPoint(3)];
-			dn.Fig{3}.YData = [dn.Origin(2), dn.EndPoint(2)];
-			ax.Visible = 'on';
 		end
 		
 		
@@ -186,19 +193,26 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			if dn.Y < 1 || dn.Y > dn.Size(2)
-				delete(dn.Fig{2});
-				return;
+			if dn.Y < 1 || dn.Y > dn.Size(2) % 索引在图像外
+				if ~isempty(dn.Fig{2}) % 非第一次显示，只需更改其 CData 即可
+					dn.Fig{2}.CData = [];
+				end
+			else % 索引在图像内
+				if isempty(dn.Fig{2}) % 第一次显示
+					ax = findobj('Tag', 'Axes2');
+					cdata = squeeze(dn.Data(:,dn.Y,:,:));
+					dn.Fig{2} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+					dn.Fig{2}.XData = [dn.Origin(3), dn.EndPoint(3)];
+					dn.Fig{2}.YData = [dn.Origin(1), dn.EndPoint(1)];
+					ax.Visible = 'on';
+					h = findobj('Tag', 'CrossLine2');
+					if ~isempty(h)
+						uistack(h, 'top');
+					end
+				else % 非第一次显示，只需更改其 CData 即可
+					dn.Fig{2}.CData = squeeze(dn.Data(:,dn.Y,:,:));
+				end
 			end
-% 			y = round((dn.Y - dn.Origin(2)) / dn.Spacing(2)) + 1;
-			ax = findobj('Tag', 'Axes2');
-% 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
-			cdata = squeeze(dn.Data(:,dn.Y,:,:));
-			delete(dn.Fig{2});
-			dn.Fig{2} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
-			dn.Fig{2}.XData = [dn.Origin(3), dn.EndPoint(3)];
-			dn.Fig{2}.YData = [dn.Origin(1), dn.EndPoint(1)];
-			ax.Visible = 'on';
 		end
 		
 		
@@ -206,19 +220,26 @@ classdef DataNode < handle
 			if ~dn.Visible
 				return;
 			end
-			if dn.Z < 1 || dn.Z > dn.Size(3)
-				delete(dn.Fig{1});
-				return;
+			if dn.Z < 1 || dn.Z > dn.Size(3) % 索引在图像外
+				if ~isempty(dn.Fig{1}) % 非第一次显示，只需更改其 CData 即可
+					dn.Fig{1}.CData = [];
+				end
+			else % 索引在图像内
+				if isempty(dn.Fig{1}) % 第一次显示
+					ax = findobj('Tag', 'Axes1');
+					cdata = squeeze(dn.Data(:,:,dn.Z,:));
+					dn.Fig{1} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+					dn.Fig{1}.XData = [dn.Origin(2), dn.EndPoint(2)];
+					dn.Fig{1}.YData = [dn.Origin(1), dn.EndPoint(1)];
+					ax.Visible = 'on';
+					h = findobj('Tag', 'CrossLine1');
+					if ~isempty(h)
+						uistack(h, 'top');
+					end
+				else % 非第一次显示，只需更改其 CData 即可
+					dn.Fig{1}.CData = squeeze(dn.Data(:,:,dn.Z,:));
+				end
 			end
-			z = round((dn.Z - dn.Origin(3)) / dn.Spacing(3)) + 1;
-			ax = findobj('Tag', 'Axes1');
-% 			[ax.XLim, ax.YLim] = GetAxisLim(dn, ax);
-			cdata = squeeze(dn.Data(:,:,dn.Z,:));
-			delete(dn.Fig{1});
-			dn.Fig{1} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
-			dn.Fig{1}.XData = [dn.Origin(2), dn.EndPoint(2)];
-			dn.Fig{1}.YData = [dn.Origin(1), dn.EndPoint(1)];
-			ax.Visible = 'on';
 		end
 		
 		
