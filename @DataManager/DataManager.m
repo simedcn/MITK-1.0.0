@@ -14,14 +14,14 @@ classdef DataManager < handle
 	
 	properties (SetObservable, AbortSet)
 		% 界面数据
-% 		Index % 界面当前光标指示的坐标点的物理坐标 [x, y, z]
+		Index % 界面当前光标指示的坐标点的物理坐标 [x, y, z]
 		cdata % 当前所操作的数据节点，通常是当前牌显示顶层的数据，仅用于引用，
 			  % 有效时为 DataNode, 无效时被设为 []
 	end
 	
 	properties (SetObservable)
 		% 界面数据
-		Index % 界面当前光标指示的坐标点的物理坐标 [x, y, z]
+% 		Index % 界面当前光标指示的坐标点的物理坐标 [x, y, z]
 	end
 	
 	events

@@ -95,6 +95,13 @@ end
 
 % “Test”按钮响应函数，仅作测试用
 function Test_Callback(hObject, eventdata, app)
+tic
+hObject.Enable = 'off'; drawnow;
+filepath = 'E:\DCMDATA\TPS\CT\v000024';
+filename = 'E:\DCMDATA\TPS\CT\v000024\CT.V000024_1.dcm';
+app.DM.LoadData(filepath, filename, '原始');
+toc
+return
 
 hObject.Enable = 'off'; drawnow;
 filepath = 'E:\DCMDATA\20171117-SH0021-0007-ZSM\MR\data\PV1';
@@ -287,19 +294,19 @@ end
 
 % 鼠标滚轮
 function MITK_WindowScrollWheelFcn(hObject, eventdata, app)
-tic
+tstart = tic;
 if isempty(app.DM.cdata)
 	return;
 end
 
 ChangeIndexByWheel(app.DM, eventdata.VerticalScrollCount);
-toc
+fprintf('滚轮用时：%6.3f ms\n', toc(tstart) * 1000);
 end
 
 
 % 鼠标按键点下
 function MITK_WindowButtonDownFcn(hObject, eventdata, app)
-tic
+tstart = tic;
 if isempty(app.DM.cdata)
 	return;
 end
@@ -316,7 +323,7 @@ elseif strcmp(clicktype, 'alt') % 2种情况：(1)Ctrl+左键，(2)右键
 elseif strcmp(clicktype, 'open') % 双击任意键
 % 	fprintf('双击\n')
 end
-toc
+fprintf('点击用时：%6.3f ms\n', toc(tstart) * 1000);
 end
 
 
@@ -339,7 +346,7 @@ end
 
 % 鼠标移动
 function MITK_WindowButtonMotionFcn(hObject, eventdata, app)
-tic
+tstart = tic;
 if isempty(app.DM.cdata)
 	return;
 end
@@ -433,7 +440,7 @@ if app.DM.UI.PaintbrushOn
 		drawnow;
 	end
 end
-toc
+fprintf('移动用时：%6.3f ms\n', toc(tstart) * 1000);
 end
 
 

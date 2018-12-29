@@ -171,10 +171,12 @@ classdef DataNode < handle
 					dn.Fig{3}.CData = [];
 				end
 			else % 索引在图像内
+				cdata = squeeze(dn.Data(dn.X,:,:,:));
+				cdata = normab2cd(double(cdata), dn.DisplayRange(1), dn.DisplayRange(2));
 				if isempty(dn.Fig{3}) % 第一次显示
 					ax = findobj('Tag', 'Axes3');
-					cdata = squeeze(dn.Data(dn.X,:,:,:));
-					dn.Fig{3} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+% 					dn.Fig{3} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+					dn.Fig{3} = imshow(cdata, 'Parent', ax);
 					dn.Fig{3}.XData = [dn.Origin(3), dn.EndPoint(3)];
 					dn.Fig{3}.YData = [dn.Origin(2), dn.EndPoint(2)];
 					ax.Visible = 'on';
@@ -183,7 +185,7 @@ classdef DataNode < handle
 						uistack(h, 'top');
 					end
 				else % 非第一次显示，只需更改其 CData 即可
-					dn.Fig{3}.CData = squeeze(dn.Data(dn.X,:,:,:));
+					dn.Fig{3}.CData = cdata;
 				end
 			end
 		end
@@ -198,10 +200,12 @@ classdef DataNode < handle
 					dn.Fig{2}.CData = [];
 				end
 			else % 索引在图像内
+				cdata = squeeze(dn.Data(:,dn.Y,:,:));
+				cdata = normab2cd(double(cdata), dn.DisplayRange(1), dn.DisplayRange(2));
 				if isempty(dn.Fig{2}) % 第一次显示
 					ax = findobj('Tag', 'Axes2');
-					cdata = squeeze(dn.Data(:,dn.Y,:,:));
-					dn.Fig{2} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+% 					dn.Fig{2} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+					dn.Fig{2} = imshow(cdata, 'Parent', ax);
 					dn.Fig{2}.XData = [dn.Origin(3), dn.EndPoint(3)];
 					dn.Fig{2}.YData = [dn.Origin(1), dn.EndPoint(1)];
 					ax.Visible = 'on';
@@ -210,7 +214,7 @@ classdef DataNode < handle
 						uistack(h, 'top');
 					end
 				else % 非第一次显示，只需更改其 CData 即可
-					dn.Fig{2}.CData = squeeze(dn.Data(:,dn.Y,:,:));
+					dn.Fig{2}.CData = cdata;
 				end
 			end
 		end
@@ -225,10 +229,12 @@ classdef DataNode < handle
 					dn.Fig{1}.CData = [];
 				end
 			else % 索引在图像内
+				cdata = squeeze(dn.Data(:,:,dn.Z,:));
+				cdata = normab2cd(double(cdata), dn.DisplayRange(1), dn.DisplayRange(2));
 				if isempty(dn.Fig{1}) % 第一次显示
 					ax = findobj('Tag', 'Axes1');
-					cdata = squeeze(dn.Data(:,:,dn.Z,:));
-					dn.Fig{1} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+% 					dn.Fig{1} = imshow(cdata, dn.DisplayRange, 'Parent', ax);
+					dn.Fig{1} = imshow(cdata, 'Parent', ax);
 					dn.Fig{1}.XData = [dn.Origin(2), dn.EndPoint(2)];
 					dn.Fig{1}.YData = [dn.Origin(1), dn.EndPoint(1)];
 					ax.Visible = 'on';
@@ -237,7 +243,7 @@ classdef DataNode < handle
 						uistack(h, 'top');
 					end
 				else % 非第一次显示，只需更改其 CData 即可
-					dn.Fig{1}.CData = squeeze(dn.Data(:,:,dn.Z,:));
+					dn.Fig{1}.CData = cdata;
 				end
 			end
 		end

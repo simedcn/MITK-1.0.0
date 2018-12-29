@@ -65,7 +65,7 @@ end
 if high > a.Max
 	high = a.Max;
 end
-a.DisplayRange = [low, high];
+a.DisplayRange = double([low, high]);
 ss = size(V);
 if nFiles == 1
 	a.Size = [ss(1:2), 1];
